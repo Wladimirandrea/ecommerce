@@ -9,3 +9,6 @@
 * git branch -M main
 * git remote add origin https://github.com/Wladimirandrea/ecommerce.git
 * git push -u origin main
+
+# instalamos livewire
+    composer require livewire/livewire
