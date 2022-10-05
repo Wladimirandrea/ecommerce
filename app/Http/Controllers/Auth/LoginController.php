@@ -30,9 +30,9 @@ class LoginController extends Controller
     /* protected $redirectTo = RouteServiceProvider::HOME; */
     protected function authenticated(){
         if(Auth::user()->role_as == '1'){
-            return redirect('admin/dashboard')->with('message', 'Bienvenido al Panel Administrativo');
+            return redirect('admin/dashboard')->with('message', 'Bienvenido');
         }else{
-            return redirect('/home')->with('status', 'logged in Successfully');
+            return redirect('/home')->with('status', 'Iniciada la sesion Exitosamente');
         }
     }
     /**

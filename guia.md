@@ -251,8 +251,37 @@ Route::prefix('/admin')->middleare(['auth','isAdmin'])->group(function(){
     @if (session('message'))
         <h2>{{session('message')}}</h2>
     @endif
+
 ## guardamos los datos
 * git add -A
 * git commit -m "video 4"
+* git branch -M main
+* git push -u origin main
+
+# Hacemos el logout en admin (5 video)
+
+## colocamos el boton logout en el navbar view/layouts/inc/admin/navbar.blade.php
+    <a class="dropdown-item" href="{{ route('logout') }}"
+        onclick="event.preventDefault();
+        document.getElementById('logout-form').submit();">
+        <i class="mdi mdi-logout text-primary"></i>
+            Logout
+    </a>
+    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+        @csrf
+    </form>
+
+## colocamos un mensaje de session de bienvenida en la vista dashboard
+    @section('content')
+<div class="row">
+    <div class="col-md-12 grid-margin">
+        @if (session('message'))
+            <h2 class="alert alert-success">{{session('message')}} {{ Auth::user()->name }}</h2>
+        @endif
+      <div class="d-flex justify-content-between flex-wrap"
+
+## guardamos los datos
+* git add -A
+* git commit -m "video 5"
 * git branch -M main
 * git push -u origin main
