@@ -81,8 +81,8 @@
             @yield('content')
         </main>
     </div>
-    <script src="{{asset('js/bootstrap.min.js')}}"></script>
-    <script src="{{asset('js/jquery.min.js')}}"></script>
+    <script src="{{asset('assets/js/bootstrap.min.js')}}"></script>
+    <script src="{{asset('assets/js/jquery.min.js')}}"></script>
 
     @livewireScripts
 </body>

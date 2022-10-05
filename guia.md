@@ -188,3 +188,71 @@ https://www.youtube.com/watch?v=ThcDACW4DkU&list=PLRheCL1cXHruG6bV4tAIF4AhkUMaAB
     </div>
   </div>
 @endsection
+
+## guardamos los datos
+* git add -A
+* git commit -m "video 3"
+* git branch -M main
+* git push -u origin main
+
+# Hacemos el midleware de admin (4 video)
+
+## agregamos una nueva columna para agregar detalles a usuario
+    php artisan make:migration add_details_to_users_table
+
+## modificamos la tabla
+    Schema::table('users', function (Blueprint $table) {
+            $table->tinyInteger('role_as')->default('0')->comment('0=user,1=admin');
+        });
+    
+    public function down()
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('role_as');
+        });
+    }
+## hacemos la migracion
+    php artisan migrate
+
+## creamos el midleware
+    php artisan make:middleware AdminMiddleware
+
+## hacemos la condicion en el middleware app/http/middleware
+   public function handle(Request $request, Closure $next)
+    {
+        if(!Auth::user()->role_as == '1'){
+            return redirect('/home')->with('status', 'Acceso denegado. Solo Administradores');
+        }
+        return $next($request);
+    }
+## modificamos en la auth app/http/Controllers/auth/logincontroller
+    use Illuminate\Support\Facades\Auth;
+    /* protected $redirectTo = RouteServiceProvider::HOME; */
+    protected function authenticated(){
+         if(Auth::user()->role_as == '1'){
+            return redirect('admin/dashboard')->with('message', 'Bienvenido al Panel Administrativo');
+        }else{
+            return redirect('/home')->with('status', 'logged in Successfully');
+        }
+    }
+
+## referenciamos el middleware en el kernel
+    app/http/kernel.php
+     protected $routeMiddleware = [
+        'isAdmin' =>  \App\Http\Middleware\AdminMiddleware::class,
+    ];
+
+## modificamo la ruta 
+Route::prefix('/admin')->middleare(['auth','isAdmin'])->group(function(){
+    Route::get('dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index']);
+});
+
+## agregamos la notificacion en la vista dashboard
+    @if (session('message'))
+        <h2>{{session('message')}}</h2>
+    @endif
+## guardamos los datos
+* git add -A
+* git commit -m "video 4"
+* git branch -M main
+* git push -u origin main
