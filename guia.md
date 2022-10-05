@@ -56,3 +56,135 @@ https://www.youtube.com/watch?v=ThcDACW4DkU&list=PLRheCL1cXHruG6bV4tAIF4AhkUMaAB
     resource/views/app.blade
     @livewireStyles
     @livewireScripts
+
+## hacemos la migracion 
+    php artisan migrate
+
+## guardamos los datos
+* git add -A
+* git commit -m "video 2"
+* git branch -M main
+* git push -u origin main
+
+# Hacemos el panel de admin (3 video)
+
+## creamos un archivo para admin
+    resource/view/admin.blade.php
+
+## copiamos el contenido de app.blade
+    <!doctype html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>{{ config('app.name', 'Laravel') }}</title>
+    <!-- plugins:css -->
+    <link rel="stylesheet" href="{{asset('admin/vendors/mdi/css/materialdesignicons.min.css')}}">
+    <link rel="stylesheet" href="{{asset('admin/vendors/base/vendor.bundle.base.css')}}">
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <link rel="stylesheet" href="{{asset('admin/vendors/datatables.net-bs4/dataTables.bootstrap4.css')}}">
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <link rel="stylesheet" href="{{asset('admin/css/style.css')}}">
+    <!-- endinject -->
+    <link rel="shortcut icon" href="{{asset('admin/images/favicon.png')}}" />
+    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    @livewireStyles
+</head>
+<body>
+    <div class="container-scroller">
+        @include('layouts.inc.admin.navbar')
+        <div class="container-fluid page-body-wrapper">
+            @include('layouts.inc.admin.sidebar')
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    @yield('content')
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+        <!-- plugins:js -->
+    <script src="{{asset('admin/vendors/base/vendor.bundle.base.js')}}"></script>
+    <script src="{{asset('admin/vendors/datatables.net/jquery.dataTables.js')}}"></script>
+    <script src="{{asset('admin/vendors/datatables.net-bs4/dataTables.bootstrap4.js')}}"></script>
+    <script src="{{asset('admin/js/off-canvas.js')}}"></script>
+    <script src="{{asset('admin/js/hoverable-collapse.js')}}"></script>
+    <script src="{{asset('admin/js/template.js')}}"></script>
+
+    <!-- Custom js for this page-->
+    <script src="{{asset('admin/js/dashboard.js')}}"></script>
+    <script src="{{asset('admin/js/data-table.js')}}"></script>
+    <script src="{{asset('admin/js/jquery.dataTables.js')}}"></script>
+    <script src="{{asset('admin/js/dataTables.bootstrap4.js')}}"></script>
+
+    @livewireScripts
+</body>
+</html>
+
+## copiamos las carpetas css fonts images js scss y vendor de la plantilla
+    creamos una carpeta admin en public/admin
+    pegamos ahi para todos los estilos
+
+## referenciamos en la direccion de los estilos
+    href="{{asset('admin/vendors/mdi/css/materialdesignicons.min.css')}}">
+
+## creamos unos nuevos archivos para desglozar la barra de navegacion y el sidebar
+    resources/view/inc/admin/navbar.blade.php
+    resources/view/inc/admin/sidebar.blade.php
+
+## copiamos la navbar de la plantilla
+
+## copiamos el sidebar de la plantilla
+
+## creamos una nueva ruta routes/web.php
+    Route::prefix('/admin')->group(function(){
+        Route::get('dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index']);
+    });
+## creamos el controlador
+    php artisan make:controller Admin/DashboardController
+
+## creamos la funcion en el controlador app/http/controller/admin/DashboardController
+     public function index(){
+        return view('admin.dashboard');
+    }
+## creamos la vista resources/view/admin/dashboard.blade.php
+    @extends('layouts.admin')
+
+@section('content')
+<div class="row">
+    <div class="col-md-12 grid-margin">
+      <div class="d-flex justify-content-between flex-wrap">
+        <div class="d-flex align-items-end flex-wrap">
+          <div class="me-md-3 me-xl-5">
+            <h2>Welcome back,</h2>
+            <p class="mb-md-0">Your analytics dashboard template.</p>
+          </div>
+          <div class="d-flex">
+            <i class="mdi mdi-home text-muted hover-cursor"></i>
+            <p class="text-muted mb-0 hover-cursor">&nbsp;/&nbsp;Dashboard&nbsp;/&nbsp;</p>
+            <p class="text-primary mb-0 hover-cursor">Analytics</p>
+          </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-end flex-wrap">
+          <button type="button" class="btn btn-light bg-white btn-icon me-3 d-none d-md-block ">
+            <i class="mdi mdi-download text-muted"></i>
+          </button>
+          <button type="button" class="btn btn-light bg-white btn-icon me-3 mt-2 mt-xl-0">
+            <i class="mdi mdi-clock-outline text-muted"></i>
+          </button>
+          <button type="button" class="btn btn-light bg-white btn-icon me-3 mt-2 mt-xl-0">
+            <i class="mdi mdi-plus text-muted"></i>
+          </button>
+          <button class="btn btn-primary mt-2 mt-xl-0">Generate report</button>
+        </div>
+      </div>
+    </div>
+  </div>
+@endsection
