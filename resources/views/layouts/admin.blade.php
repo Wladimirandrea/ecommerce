@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="{{asset('admin/css/style.css')}}">
     <!-- endinject -->
     <link rel="shortcut icon" href="{{asset('admin/images/favicon.png')}}" />
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    {{-- @vite(['resources/sass/app.scss', 'resources/js/app.js']) --}}
     @livewireStyles
 </head>
 <body>
@@ -37,7 +37,8 @@
 
 
         <!-- plugins:js -->
-    <script src="{{asset('assets/js/bootstrap.min.js')}}"></script>
+
+    <script src="{{asset('js/bootstrap.js')}}"></script>
     <script src="{{asset('assets/js/jquery.min.js')}}"></script>
     <script src="{{asset('admin/vendors/base/vendor.bundle.base.js')}}"></script>
     <script src="{{asset('admin/vendors/datatables.net/jquery.dataTables.js')}}"></script>

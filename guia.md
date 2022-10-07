@@ -285,3 +285,219 @@ Route::prefix('/admin')->middleare(['auth','isAdmin'])->group(function(){
 * git commit -m "video 5"
 * git branch -M main
 * git push -u origin main
+
+# Hacemos la categoria (6 video)
+
+## creamos la tabla categoria
+    php artisan make:migration create_categories_table
+
+## creamos los campos para la tabla categoria
+    Schema::create('categories', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('slug');
+            $table->longText('description');
+            $table->string('image')->nullable();
+            $table->string('meta_title');
+            $table->string('meta_keyword');
+            $table->mediumText('meta_description');
+            $table->tinyInteger('status')->default('0')->comment('0=visible,1=hidden');
+            $table->timestamps();
+        });
+## hacemos la migracion
+    php artisan migrate
+
+## creamos el modelo categoria
+    php artisan make:model Category
+
+## protegemos los campos en el modelo
+    protected $table = 'categories';
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'image',
+        'meta_title',
+        'meta_keyword',
+        'meta_description',
+        'status',
+    ];
+
+## creamos el controlador para categorias
+    php artisan make:controller Admin/CategoryController
+
+## hacemos la funcion en el controlador CategoryController
+    public function index(){
+        return view('admin.category.index');
+    }
+## creamos la ruta para categoria
+    //Ruta Categoria
+    Route::get('category', [App\Http\Controllers\Admin\CategoryController::class, 'index']);
+
+## creamos la vista view/admin/category/index.blade.php
+@extends('layouts.admin')
+
+@section('content')
+<div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+            <h2>Category
+                <a href="{{url('admin/category/create')}}" class="btn btn-primary btn-sm float-end">Agregar Categoria</a>
+            </h2>
+        </div>
+        <div class="card-body">
+            a
+        </div>
+      </div>
+
+    </div>
+  </div>
+@endsection
+
+## creamos la ruta crear categoria
+Route::get('category/create', [App\Http\Controllers\Admin\CategoryController::class, 'create']);
+
+## creamos la funcion de crear categoria
+    public function create(){
+        return view('admin.category.create');
+    }
+
+## creamos la vista view/admin/category/create.blade.php
+@extends('layouts.admin')
+
+@section('content')
+<div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+            <h2>Category
+                <a href="{{url('admin/category')}}" class="btn btn-primary btn-sm float-end">Regresar</a>
+            </h2>
+        </div>
+        <div class="card-body">
+            <form action="{{url('admin/category')}}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="">Nombre:</label>
+                        <input type="text" name="name" id="" class="form-control">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="">Slug:</label>
+                        <input type="text" name="slug" id="" class="form-control">
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label for="">Description:</label>
+                        <textarea name="description" rows="3" class="form-control"></textarea>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="">Image:</label>
+                        <input type="file" name="image" id="" class="form-control">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="">Status:</label><br/>
+                        <input type="checkbox" name="status" />
+                    </div>
+                    <div class="col-md-12">
+                        <h4>SEO tag</h4>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label for="">Meta Title:</label>
+                        <input type="text" name="meta_title" id="" class="form-control">
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label for="">Meta Keyword:</label>
+                        <input type="text" name="meta_keyword" id="" class="form-control">
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <button type="submit" class="btn btn-primary float-end">Guardar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+@endsection
+
+## creamos la ruta para guardar categoria 
+Route::post('category', [App\Http\Controllers\Admin\CategoryController::class, 'store']);
+
+## creamos el request de form request
+    php artisan make:request CategoryFormRequest
+
+## creamos la funcion store en el controlador category
+   
+    use App\Models\Category;
+    use Illuminate\Support\Str;
+    use App\Http\Requests\CategoryFormRequest;
+
+    public function store(CategoryFormRequest $request){
+        $validatedData = $request->validated();
+        $category = new Category;
+        $category->name = $validatedData['name'];
+        $category->slug = Str::slug($validatedData['slug']);
+        $category->description = $validatedData['description'];
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $ext = $file->getClientOriginalExtension();
+            $filename = time().'.'.$ext;
+
+            $file->move('uploads/category/',$filename);
+            $category->image = $filename;
+        }
+
+
+
+        $category->meta_title = $validatedData['meta_title'];
+        $category->meta_keyword = $validatedData['meta_keyword'];
+        $category->meta_description = $validatedData['meta_description'];
+
+        $category->status = $request->status == true ? '1':'0';
+
+        $category->save();
+        return redirect('admin/category')->with('message', 'Categoria Agregada Correctamente');
+    }
+    
+
+## modificamos la function autorize y rules app/http/request/CategoryFormRequest
+    public function authorize()
+    {
+        return true;
+    }
+    public function rules()
+    {
+        return [
+            'name' => [
+                'required',
+                'string'
+            ],
+            'slug' => [
+                'required',
+                'string'
+            ],
+            'description' => [
+                'required',
+            ],
+            'image' => [
+                'nullable',
+                'mimes:jpg,jpeg,png'
+            ],
+            'meta_title' => [
+                'required',
+                'string'
+            ],
+            'meta_keyword' => [
+                'required',
+                'string'
+            ],
+            'meta_description' => [
+                'required',
+                'string'
+            ],
+        ];
+    }

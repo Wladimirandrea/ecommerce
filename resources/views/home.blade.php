@@ -16,6 +16,9 @@
 
                     {{ __('You are logged in!') }}
                 </div>
+                <div class="card-body">
+                   <a href="{{url('/admin/dashboard')}}">Panel Admin</a>
+                </div>
             </div>
         </div>
     </div>
