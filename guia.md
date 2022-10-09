@@ -501,3 +501,264 @@ Route::post('category', [App\Http\Controllers\Admin\CategoryController::class, '
             ],
         ];
     }
+
+## guardamos los datos
+* git add -A
+* git commit -m "video 6"
+* git branch -M main
+* git push -u origin main
+
+# Listamos, editamos, eliminamos categorias (7 video)
+
+## colocamos la notificacionen el index categoria
+ @if (session('message'))
+    <h2 class="alert alert-success">{{session('message')}} {{ Auth::user()->name }}</h2>
+@endif
+
+## hacemos el livewire
+    php artisan make:livewire Admin/Category/Index
+## cortamos el contenido de la vista view/admin/category/index.blade
+    pegamos en la vista livewire view/livewire/admin/category/index.blade.php
+
+## hacemos referencia al componente livewire
+<div>
+    <livewire:admin.category.index/>
+</div>
+
+## hacemos la funcion en el controlador livewire
+use Livewire\Component;
+use App\Models\Category;
+use Livewire\WithPagination;
+
+
+    use WithPagination;
+    protected $paginationTheme = 'bootstrap';
+    public function render()
+    {
+        $categories = Category::orderBy('id','DESC')->paginate(10);
+        return view('livewire.admin.category.index', ['categories' => $categories]);
+    }
+
+## creamos la tabla en la vista livewire/admin/category/index.blade.php
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach ($categories as $category)
+            <tr>
+                <td>{{$category->id}}</td>
+                <td>{{$category->name}}</td>
+                <td>{{$category->status == '1' ? 'Hidden':'Visible'}}</td>
+                <td>
+                    <a href="{{url('admin/category/'.$category->id.'/edit')}}" class="btn btn-sm btn-success"><i class="mdi mdi-table-edit"></i></a>
+                    <a href="" class="btn btn-sm btn-danger"><i class="mdi mdi-delete"></i></a>
+                </td>
+            </tr>
+        @endforeach
+    </tbody>
+</table>
+<div>
+    {{$categories->links()}}
+</div>
+
+## hacemos la ruta para editar agrupando todas las categorias
+
+    Route::controller(App\Http\Controllers\Admin\CategoryController::class)->group(function () {
+        Route::get('/category', 'index');
+        Route::get('/category/create', 'create');
+        Route::post('/category', 'store');
+        Route::get('/category/{category}/edit', 'edit');
+    });
+## creamos la funcion para editar
+public function edit(Category $category){
+        return view('admin.category.edit', compact('category'));
+    }
+
+## copiamos la vista crear para utilkizarla en editar
+@extends('layouts.admin')
+
+@section('content')
+<div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+            <h2>Editar Categoria
+                <a href="{{url('admin/category')}}" class="btn btn-primary btn-sm float-end">Regresar</a>
+            </h2>
+        </div>
+        <div class="card-body">
+            <form action="{{url('admin/category/'.$category->id)}}" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="">Nombre:</label>
+                        <input type="text" name="name" value="{{$category->name}}" class="form-control">
+                        @error('name')
+                          <small class="text-danger">{{$message}}</small>
+                        @enderror
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="">Slug:</label>
+                        <input type="text" name="slug" value="{{$category->slug}}" class="form-control">
+                        @error('slug')
+                          <small class="text-danger">{{$message}}</small>
+                        @enderror
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label for="">Description:</label>
+                        <textarea name="description" rows="3" class="form-control">{{$category->description}}</textarea>
+                        @error('description')
+                          <small class="text-danger">{{$message}}</small>
+                        @enderror
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="">Image:</label>
+                        <input type="file" name="image" class="form-control">
+                        <img src="{{asset('/uploads/category/'.$category->image)}}" width="60px" height="60px" alt="">
+                        @error('image')
+                          <small class="text-danger">{{$message}}</small>
+                        @enderror
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="">Status:</label><br/>
+                        <input type="checkbox" name="status" value="{{$category->status}}" />
+                        @error('status')
+                          <small class="text-danger">{{$message}}</small>
+                        @enderror
+                    </div>
+                    <div class="col-md-12">
+                        <h4>SEO tag</h4>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label for="">Meta Title:</label>
+                        <input type="text" name="meta_title" value="{{$category->meta_title}}" class="form-control">
+                        @error('meta_title')
+                          <small class="text-danger">{{$message}}</small>
+                        @enderror
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label for="">Meta Keyword:</label>
+                        <input type="text" name="meta_keyword" value="{{$category->meta_keyword}}" class="form-control">
+                        @error('meta_keyword')
+                          <small class="text-danger">{{$message}}</small>
+                        @enderror
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label for="">Meta Description:</label>
+                        <input type="text" name="meta_description" value="{{$category->meta_description}}" class="form-control">
+                        @error('meta_description')
+                          <small class="text-danger">{{$message}}</small>
+                        @enderror
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <button type="submit" class="btn btn-primary float-end">Actualizar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+@endsection
+
+## creamos la ruta para actualizar
+  Route::put('/category/{category}', 'update');  
+## creamos la function para actualizar
+     public function update(CategoryFormRequest $request, $category){
+        $validatedData = $request->validated();
+        $category = Category::findOrFail($category);
+
+        $category->name = $validatedData['name'];
+        $category->slug = Str::slug($validatedData['slug']);
+        $category->description = $validatedData['description'];
+
+        if ($request->hasFile('image')) {
+            $path = 'uploads/category/'.$category->image;
+            if(File::exists($path)){
+                File::delete($path);
+            }
+            $file = $request->file('image');
+            $ext = $file->getClientOriginalExtension();
+            $filename = time().'.'.$ext;
+
+            $file->move('uploads/category/',$filename);
+            $category->image = $filename;
+        }
+
+        $category->meta_title = $validatedData['meta_title'];
+        $category->meta_keyword = $validatedData['meta_keyword'];
+        $category->meta_description = $validatedData['meta_description'];
+
+        $category->status = $request->status == true ? '1':'0';
+
+        $category->update();
+        return redirect('admin/category')->with('message', 'Categoria Agregada Correctamente');
+    }
+
+## creamos el boton de borrar con modal en view/livewire/admin/category/index
+    <a href="#" wire:click="deleteCategory({{$category->id}})" data-bs-toggle="modal" data-bs-target="#deleteModal" class="btn btn-sm btn-danger"><i class="mdi mdi-delete"></i></a>
+
+## copiamos el modal
+ojo metemos el modal y el contenido da la tabla con un div
+
+<!-- Modal -->
+    <div wire:ignore.self class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="deleteModal">Modal title</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form wire:submit.prevent="destroyCategory">
+                <div class="modal-body">
+                    <h6>¿Estas Seguro que desear Borrar la Categoria?</h6>
+                    </div>
+                    <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Si. Borrar</button>
+                </div>
+            </form>
+
+          </div>
+        </div>
+    </div>
+
+## creamos la funcion en el livewire para borrar la categoria
+    public $category_id;
+    public function deleteCategory($category_id){
+        $this->category_id = $category_id;
+    }
+
+## creamos la funcion para eliminar las fot de la categoria
+    public function destroyCategory(){
+        $category = Category::find($this->category_id);
+        $path = 'uploads/category/'.$category->image;
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        $category->delete();
+        session()->flash('message', 'Categoria Borrada');
+        $this->dispatchBrowserEvent('close-modal');
+    }
+
+## agregamos el script al final view/live
+
+@push('script')
+<script>
+    window.addEventListener('close-modal', event=>{
+        $('#deleteModal').modal('hide');
+    });
+</script>
+@endpush
+
+## referenciamos el stack en el view/layout/admin.blade.php
+@livewireScripts
+  @stack('script')
