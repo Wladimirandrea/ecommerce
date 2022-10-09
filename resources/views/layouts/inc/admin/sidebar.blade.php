@@ -7,6 +7,12 @@
         </a>
       </li>
       <li class="nav-item">
+        <a class="nav-link" href="{{url('/admin/dashboard')}}">
+          <i class="mdi mdi-home menu-icon"></i>
+          <span class="menu-title">Ventas</span>
+        </a>
+      </li>
+      <li class="nav-item">
         <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
           <i class="mdi mdi-circle-outline menu-icon"></i>
           <span class="menu-title">Categorias</span>
@@ -22,7 +28,7 @@
       <li class="nav-item">
         <a class="nav-link" href="pages/forms/basic_elements.html">
           <i class="mdi mdi-view-headline menu-icon"></i>
-          <span class="menu-title">Form elements</span>
+          <span class="menu-title">Marcas</span>
         </a>
       </li>
       <li class="nav-item">

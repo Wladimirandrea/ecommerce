@@ -760,5 +760,222 @@ ojo metemos el modal y el contenido da la tabla con un div
 @endpush
 
 ## referenciamos el stack en el view/layout/admin.blade.php
-@livewireScripts
+    @livewireScripts
   @stack('script')
+
+## guardamos los datos
+* git add -A
+* git commit -m "video 7"
+* git branch -M main
+* git push -u origin main
+
+# Creamos las marcas (8 video)
+
+## creamos la ruta para las marcas
+     Route::get('/brands', App\Http\Livewire\Admin\Brand\Index::class, 'index');
+
+## creamos la tabla de las marcas
+php artisan make:migration create_brands_table
+
+## creamos los campos para la tabla
+Schema::create('brands', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('slug');
+            $table->tinyInteger('status')->default('0');
+
+            $table->timestamps();
+        });
+## hacemos la migracion
+php artisan migrate
+
+## creamos el modelo
+php artisan make:model Brand
+
+## protegemos la tabla en el modelo
+ protected $table = 'brands';
+    protected $fillable = [
+        'name',
+        'slug',
+        'status',
+    ];
+
+## creamos el componente livewire
+php artisan make:livewire Admin/Brand/Index
+
+## extendemos la vista en el componente livewire app/http/livewire/admin/brand/index.php
+public function render()
+    {
+        return view('livewire.admin.brand.index')->extends('layouts.admin')->section('content');
+    }
+
+## creamos la vista para las componentes marcas view/livewire/admin/brand/index
+<div>
+    @include('livewire.admin.brand.modal-form')
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>
+                        Lista de Marcas
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#addBrandModal" class="btn btn-primary btn-sm float-end">Agregar Marcas</a>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered table-stiped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Slug</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+## creamos un nuevo archivo para el modal
+    view/livewire/admin/brand/modal-form.blade
+<!-- Modal -->
+<div wire:ignore.self class="modal fade" id="addBrandModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="deleteModal">Agregar Marca</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form wire:submit.prevent="storeBrand">
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label>Nombre de la marca</label>
+                    <input type="text" wire:model.defer="name" class="form-control">
+                    @error('name') <small class="text-danger">{{$message}}</small> @enderror
+                </div>
+                <div class="mb-3">
+                    <label>Nombre Slug</label>
+                    <input type="text" wire:model.defer="slug" class="form-control">
+                    @error('slug') <small class="text-danger">{{$message}}</small> @enderror
+                </div>
+                <div class="mb-3">
+                    <label>Estatus</label><br/>
+                    <input type="checkbox" wire:model.defer="status" />Checked=Hidden, sin-Checked = Visible
+                    @error('status') <small class="text-danger">{{$message}}</small> @enderror
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Si. Borrar</button>
+            </div>
+        </form>
+
+      </div>
+    </div>
+</div>
+
+## hacemos la funcion en el componente app/http/livewire/admin/brand
+use App\Models\Brand;
+use Livewire\Component;
+use Illuminate\Support\Str;
+public $name,$slug,$status;
+    public function rules(){
+        return [
+            'name' => 'required|string',
+            'slug' => 'required|string',
+            'status' => 'nullable'
+        ];
+    }
+    public function storeBrand(){
+        $validateData = $this->validate();
+        Brand::create([
+            'name' => $this->name,
+            'slug' => Str::slug($this->slug),
+            'status' => $this->status == true ? '1':'0',
+
+        ]);
+        session()->flash('message', 'Marca Añadida Correctamente');
+        $this->dispatchBrowserEvent('close-modal');
+    }
+
+## colocamos el script para cerrar el modal
+
+@push('script')
+<script>
+    window.addEventListener('close-modal', event=>{
+        $('#addBrandModal').modal('hide');
+    });
+</script>
+@endpush
+
+## creamos la funcion para limpiar los input 
+public $name,$slug,$status;
+    public function rules(){
+        return [
+            'name' => 'required|string',
+            'slug' => 'required|string',
+            'status' => 'nullable'
+        ];
+    }
+    public function resetInput(){
+        $this->name = NULL;
+        $this->slug = NULL;
+        $this->status = NULL;
+    }
+
+    public function storeBrand(){
+        $validateData = $this->validate();
+        Brand::create([
+            'name' => $this->name,
+            'slug' => Str::slug($this->slug),
+            'status' => $this->status == true ? '1':'0',
+
+        ]);
+        session()->flash('message', 'Marca Añadida Correctamente');
+        $this->dispatchBrowserEvent('close-modal');
+        $this->resetInput();
+    }
+
+## hacemos la funcion para listar todas las marcas 
+public function render()
+    {
+        $brands = Brand::orderBy('id', 'DESC')->paginate(5);
+        return view('livewire.admin.brand.index', ['brands' => $brands])->extends('layouts.admin')->section('content');
+    }
+
+## listamos en la vista
+@forelse ($brands as $brand)
+                            <tr>
+                                <td>{{$brand->id}}</td>
+                                <td>{{$brand->name}}</td>
+                                <td>{{$brand->slug}}</td>
+                                <td>{{$brand->status == '1' ? 'oculto':'visible'}}</td>
+                                <td>
+                                    <a href="" class="btn btn-sm btn-success">Edit</a>
+                                    <a href="" class="btn btn-sm btn-danger">Edit</a>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="5">No Hay Marcas Encontradas</td>
+                            </tr>
+                            @endforelse
+
+
+                        </tbody>
+                    </table>
+                    <div>
+                        {{$brands->links()}}
