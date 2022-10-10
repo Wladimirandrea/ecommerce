@@ -965,7 +965,7 @@ public function render()
                                 <td>{{$brand->status == '1' ? 'oculto':'visible'}}</td>
                                 <td>
                                     <a href="" class="btn btn-sm btn-success">Edit</a>
-                                    <a href="" class="btn btn-sm btn-danger">Edit</a>
+                                    <a href="" class="btn btn-sm btn-danger">Eliminar</a>
                                 </td>
                             </tr>
                             @empty
@@ -979,3 +979,153 @@ public function render()
                     </table>
                     <div>
                         {{$brands->links()}}
+
+## guardamos los datos
+* git add -A
+* git commit -m "video 8"
+* git branch -M main
+* git push -u origin main
+
+## editamos y borramos marcas (9 video)
+
+## copiamos el modal de agregar marcas
+
+<!-- Modal update -->
+<div wire:ignore.self class="modal fade" id="updateBrandModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="deleteModal">Editar Marca</h1>
+          <button type="button" class="btn-close" wire:click="closeModal" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div wire:loading class="p-2">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>Cargando...
+        </div>
+        <div wire:loading.remove>
+            <form wire:submit.prevent="updateBrand">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Nombre de la marca</label>
+                        <input type="text" wire:model.defer="name" class="form-control">
+                        @error('name') <small class="text-danger">{{$message}}</small> @enderror
+                    </div>
+                    <div class="mb-3">
+                        <label>Nombre Slug</label>
+                        <input type="text" wire:model.defer="slug" class="form-control">
+                        @error('slug') <small class="text-danger">{{$message}}</small> @enderror
+                    </div>
+                    <div class="mb-3">
+                        <label>Estatus</label><br/>
+                        <input type="checkbox" wire:model.defer="status" style="width:70px;height=70px;" />Checked=Oculto, sin-Checked = Visible
+                        @error('status') <small class="text-danger">{{$message}}</small> @enderror
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" wire:click="closeModal" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Actualizar</button>
+                </div>
+            </form>
+        </div>
+
+      </div>
+    </div>
+</div>
+
+## modificamos los link de editar en la vista view/livewire/admin/brand/index.blade
+<a href="#" wire:click="editBrand({{$brand->id}})" data-bs-toggle="modal" data-bs-target="#updateBrandModal" class="btn btn-sm btn-success">Edit</a>
+
+## hacemos la funcion para editar los campos
+    public function editBrand(int $brand_id){
+        $this->brand_id = $brand_id;
+        $brand = Brand::findOrFail($brand_id);
+        $this->name = $brand->name;
+        $this->slug = $brand->slug;
+        $this->status = $brand->status;
+    }
+
+## hacemos tambien las funciones para abrir y cerrar modal
+public function closeModal(){
+        $this->resetInput();
+    }
+    public function openModal(){
+        $this->resetInput();
+    }
+
+## hacemos la funcion para actualizar los datos
+    public function updateBrand(){
+        $validateData = $this->validate();
+        Brand::findOrFail($this->brand_id)->update([
+            'name' => $this->name,
+            'slug' => Str::slug($this->slug),
+            'status' => $this->status == true ? '1':'0',
+
+        ]);
+        session()->flash('message', 'Marca Actualizada Correctamente');
+        $this->dispatchBrowserEvent('close-modal');
+        $this->resetInput();
+    }
+
+## creamos el modal para borrar
+
+<!-- Modal Eliminar -->
+<div wire:ignore.self class="modal fade" id="deleteBrandModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="deleteModal">Eliminar Marca</h1>
+          <button type="button" class="btn-close" wire:click="closeModal" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div wire:loading class="p-2">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>Cargando...
+        </div>
+        <div wire:loading.remove>
+            <form wire:submit.prevent="destroyBrand">
+                <div class="modal-body">
+                    <h4>¿Esta Seguro que deseas Eliminar esta Marca?</h4>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" wire:click="closeModal" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Si. Borrar</button>
+                </div>
+            </form>
+        </div>
+
+      </div>
+    </div>
+</div>
+
+## agremos la funcion para eliminar
+ public function destroyBrand(){
+        Brand::findOrFail($this->brand_id)->delete();
+        session()->flash('message', 'Marca Eliminada Correctamente');
+        $this->dispatchBrowserEvent('close-modal');
+        $this->resetInput();
+    }
+
+## agregamos el link para eliminar
+<a href="#" wire:click="deleteBrand({{$brand->id}})" data-bs-toggle="modal" data-bs-target="#deleteBrandModal" class="btn btn-sm btn-danger">Eliminar</a>
+
+## agregamos los script 
+
+@push('script')
+<script>
+    window.addEventListener('close-modal', event=>{
+        $('#addBrandModal').modal('hide');
+        $('#updateBrandModal').modal('hide');
+        $('#deleteBrandModal').modal('hide');
+    });
+</script>
+@endpush
+
+## guardamos los datos
+* git add -A
+* git commit -m "video 9"
+* git branch -M main
+* git push -u origin main
