@@ -986,7 +986,7 @@ public function render()
 * git branch -M main
 * git push -u origin main
 
-## editamos y borramos marcas (9 video)
+# editamos y borramos marcas (9 video)
 
 ## copiamos el modal de agregar marcas
 
@@ -1127,5 +1127,435 @@ public function closeModal(){
 ## guardamos los datos
 * git add -A
 * git commit -m "video 9"
+* git branch -M main
+* git push -u origin main
+
+## agregamos los productos multiples imagenes (10 video)
+
+## agremos los link en el sidebar
+ <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
+          <i class="mdi mdi-circle-outline menu-icon"></i>
+          <span class="menu-title">Productos</span>
+          <i class="menu-arrow"></i>
+        </a>
+        <div class="collapse" id="ui-basic">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item"> <a class="nav-link" href="{{url('/admin/products/create')}}">Agregar Productos</a></li>
+            <li class="nav-item"> <a class="nav-link" href="{{url('/admin/products')}}">Ver Productos</a></li>
+          </ul>
+        </div>
+      </li>
+
+## creamos la tabla de productos
+php artisan make:migration create_products_table
+
+## creamos los campos para la tabla productos
+     Schema::create('products', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('category_id');
+            $table->string('name');
+            $table->string('slug');
+            $table->string('brand')->nullable();
+            $table->mediumText('small_description')->nullable();
+            $table->longText('description')->nullable();
+
+            $table->integer('original_price');
+            $table->integer('selling_price');
+            $table->integer('quantity');
+            $table->tinyInteger('trending')->default('0')->comment('1=tendencia, 0=no es tendencia');
+            $table->itnyInteger('status')->default('0')->comment('1=oculto, 0=visible');
+
+            $table->string('meta_title')->nullable();
+            $table->mediumText('meta_keyword')->nullable();
+            $table->mediumText('meta_description')->nullable();
+
+
+            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
+            $table->timestamps();
+
+        });
+## creamos la tabla para las imagenes 
+    php artisan make:migration create_product_images_table
+
+## creamos los campos para la tabla de imagenes
+    Schema::create('product_images', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('product_id');
+            $table->string('image');
+
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            $table->timestamps();
+        });
+## hacemos los modelos para productos
+    php artisan make:model Product
+
+## modificamos el modelo producto
+    protected $table = 'products';
+
+    protected $fillable = [
+        'category_id',
+        'name',
+        'slug',
+        'brand',
+        'small_description',
+        'description',
+        'original_price',
+        'selling_price',
+        'quantity',
+        'trending',
+        'status',
+        'meta_title',
+        'meta_keyword',
+        'meta_description',
+
+    ];
+
+## hacemos los modelos para productosimage
+    php artisan make:model ProductImage
+
+## modificamos el modelo productoImage
+
+    protected $table = 'product_images';
+
+    protected $fillable = [
+        'product_id',
+        'image'
+    ];
+
+## hacemos el controlador para productos
+    php artisan make:controller Admin/ProductController
+
+## creamos la ruta para productos
+Route::controller(App\Http\Controllers\Admin\ProductController::class)->group(function () {
+        Route::get('/products', 'index');
+    });
+
+## hacemos la funcion en el controlador de productos
+    public function index(){
+        return view('admin.products.index');
+    }
+
+## creamos la vista view/admin/products/index.blade.php
+@extends('layouts.admin')
+
+@section('content')
+<div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+            <h2>Category
+                <a href="{{url('admin/products/create')}}" class="btn btn-primary btn-sm float-end">Agregar Productos</a>
+            </h2>
+        </div>
+        <div class="card-body">
+
+        </div>
+      </div>
+
+    </div>
+</div>
+@endsection
+
+## creamos la ruta para crear productos
+    Route::controller(App\Http\Controllers\Admin\ProductController::class)->group(function () {
+        Route::get('/products', 'index');
+        Route::get('/products/create', 'create');
+    });
+## hacemos la funcion para crear productos
+     public function create(){
+        return view('admin.products.create');
+    }
+
+## hacemos la vista 
+@extends('layouts.admin')
+
+@section('content')
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h2>Productos
+                    <a href="{{url('admin/products')}}" class="btn btn-primary btn-sm float-end">Regresar</a>
+                </h2>
+            </div>
+            <div class="card-body">
+            @if ($errors->any())
+            <div class="alert alert-warning">
+                @foreach ($errors->all() as $error)
+                    <div>{{$error}}</div>
+                @endforeach
+            </div>
+
+            @endif
+            <form action="{{url('admin/products/')}}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">
+                            Home
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="seotag-tab" data-bs-toggle="pill" data-bs-target="#seotag" type="button" role="tab" aria-controls="seotag" aria-selected="false">
+                            SEO TAGS
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="details-tab" data-bs-toggle="pill" data-bs-target="#details" type="button" role="tab" aria-controls="details" aria-selected="false">
+                            Detalles
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="image-tab" data-bs-toggle="pill" data-bs-target="#images" type="button" role="tab" aria-controls="images" aria-selected="false">
+                            Imagenes
+                        </button>
+                    </li>
+                  </ul>
+                  <div class="tab-content" id="pills-tabContent">
+                    {{-- tabs inicio --}}
+                    <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+                        <div class="mb-3">
+                            <label>Category</label>
+                            <select name="category_id" class="form-control">
+                                @foreach ($categories as $category)
+                                    <option value="{{$category->id}}">{{$category->name}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Product Name</label>
+                            <input type="text" name="name" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label>Product Slug</label>
+                            <input type="text" name="slug" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label>Seleccionar Marca</label>
+                            <select name="brand" class="form-control">
+                                @foreach ($brands as $brand)
+                                    <option value="{{$brand->name}}">{{$brand->name}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Pequeña Descripcion</label>
+                            <textarea name="small_description" class="form-control" rows="4"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label>Descripcion</label>
+                            <textarea name="description" class="form-control" rows="4"></textarea>
+                        </div>
+                    </div>
+                    {{-- tabs SEO --}}
+                    <div class="tab-pane fade" id="seotag" role="tabpanel" aria-labelledby="seotag-tab">
+                        <div class="mb-3">
+                            <label>Meta Title</label>
+                            <input type="text" name="meta_title" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label>Meta Descripcion</label>
+                            <textarea name="meta_description" class="form-control" rows="4"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label>Meta Keyword</label>
+                            <textarea name="meta_keyword" class="form-control" rows="4"></textarea>
+                        </div>
+                    </div>
+                    {{-- tabs detalles --}}
+                    <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label>Precio Original</label>
+                                    <input type="text" name="original_price" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label>Precio de venta</label>
+                                    <input type="text" name="selling_price" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label>Cantidad</label>
+                                    <input type="number" name="quantity" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label>Tendencia</label>
+                                    <input type="checkbox" name="trending" style="width: 50px; height: 50px;">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label>Estatus</label>
+                                    <input type="checkbox" name="status" style="width: 50px; height: 50px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- tabs imagenes --}}
+                    <div class="tab-pane fade" id="images" role="tabpanel" aria-labelledby="image-tab">
+                        <div class="mb-3">
+                            <label>Subir Imagenes de Productos</label>
+                            <input type="file" name="image[]" multiple class="form-control">
+                        </div>
+                    </div>
+                  </div>
+                  <div>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                  </div>
+
+            </form>
+
+        </div>
+        </div>
+    </div>
+</div>
+
+## hacemos la migracion 
+php artisan migrate
+
+## hacemos la funcion create products 
+
+    use App\Models\Brand;
+    use App\Models\Category;
+    public function create(){
+        $categories = Category::all();
+        $brands = Brand::all();
+        return view('admin.products.create', compact('categories', 'brands'));
+    }
+
+## modificamos las rutas para productos
+    Route::controller(App\Http\Controllers\Admin\ProductController::class)->group(function () {
+        Route::get('/products', 'index');
+        Route::get('/products/create', 'create');
+        Route::post('/products', 'store');
+
+    });
+
+## creamos la function store en el controlador
+ public function store(ProductFormRequest $request){
+        $validatedData = $request->validated();
+        $category = Category::findOrFail($validatedData['category_id']);
+        $product = $category->products()->create([
+            'category_id' => $validatedData['category_id'],
+            'name' => $validatedData['name'],
+            'slug' => Str::slug($validatedData['slug']),
+            'brand' => $validatedData['brand'],
+            'small_description' => $validatedData['small_description'],
+            'description' => $validatedData['description'],
+            'original_price' => $validatedData['original_price'],
+            'selling_price' => $validatedData['selling_price'],
+            'quantity' => $validatedData['quantity'],
+            'trending' => $request->trending == true ? '1': '0',
+            'status' => $request->status == true ? '1': '0',
+            'meta_title' => $validatedData['meta_title'],
+            'meta_keyword' => $validatedData['meta_keyword'],
+            'meta_description' => $validatedData['meta_description'],
+        ]);
+        if($request->hasFile('image')){
+            $uploadPath = 'uploads/products/';
+            $i = 0;
+            foreach($request->file('image') as $imageFile){
+                $extention = $imageFile->getClientOriginalExtension();
+                $filename = time().$i++.'.'.$extention;
+                $imageFile->move($uploadPath,$filename);
+                $finalImagePathName = $uploadPath.$filename;
+                $product->productImages()->create([
+                    'product_id' => $product->id,
+                    'image' => $finalImagePathName,
+                ]);
+            }
+        }
+        return redirect('/admin/products')->with('message', 'Producto añadido Correctamente');
+        /* return $product; */
+    }
+
+## creamos el productformrequest
+php artisan make:request ProductFormRequest
+
+## modificamos el productFormRequest
+    public function authorize()
+    {
+        return true;
+    }
+  public function rules()
+    {
+        return [
+            'category_id' => [
+                'required',
+                'integer'
+            ],
+            'name' => [
+                'required',
+                'string'
+            ],
+             'slug' => [
+                'required',
+                'string',
+                'max:255'
+            ],
+            'brand' => [
+                'required',
+                'string',
+                'max:255'
+            ],
+            'small_description' => [
+                'required',
+                'string'
+            ],
+            'description' => [
+                'string'
+            ],
+            'original_price' => [
+                'required',
+                'integer'
+            ],
+            'selling_price' => [
+                'required',
+                'string'
+            ],
+            'quantity' => [
+                'required',
+                'integer'
+            ],
+            'trending' => [
+                'required',
+                'string'
+            ],
+            'status' => [
+                'string'
+            ],
+            'meta_title' => [
+                'required',
+                'string',
+                'max:255'
+            ],
+            'meta_keyword' => [
+                'required',
+                'string'
+
+            ],
+            'meta_description' => [
+                'required',
+                'string'
+            ],
+            'image' => [
+                'nullable'
+                //'image|mimes:jpeg,png,jpg'
+            ],
+
+        ];
+    }
+
+
+## guardamos los datos
+* git add -A
+* git commit -m "video 10"
 * git branch -M main
 * git push -u origin main
