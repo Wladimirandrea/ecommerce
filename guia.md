@@ -1559,3 +1559,334 @@ php artisan make:request ProductFormRequest
 * git commit -m "video 10"
 * git branch -M main
 * git push -u origin main
+
+## editamos actualizamos eliminamos los productos (11 video)
+
+## creamos la tabla para listar los productos
+    <tbody>
+                    @forelse ($products as $product)
+                    <tr>
+                        <td>{{$product->id}}</td>
+                        <td>{{$product->category_id}}</td>
+                        <td>{{$product->name}}</td>
+                        <td>{{$product->selling_price}}</td>
+                        <td>{{$product->quantity}}</td>
+                        <td>{{$product->status == '1' ? 'Hidden':'Visible'}}</td>
+                        <td>
+                            <a href="" class="btn btn-success">Editar</a>
+                            <a href="" class="btn btn-danger">Delete</a>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="7">No hay Productos Disponibles</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+
+## modificamos la funcion index del controlador productos
+    public function index(){
+        $products = Product::all();
+        return view('admin.products.index', compact('products'));
+    }
+
+## modificamos la relacion del modelo producto a category
+    public function category(){
+        return $this->belongsTo(Category::class, 'category_id', 'id');
+    }
+
+## modificamos la vista index para productos
+<td>
+                            @if ($product->category)
+                                {{$product->category->name}}
+                            @else
+                                Sin Categoria
+                            @endif
+
+                        </td>   
+
+## creamos el boton para editar
+<a href="{{url('admin/products/'.$product->id.'/edit')}}" class="btn btn-sm btn-success">Editar</a>
+
+## creamos la ruta para editar
+
+    Route::post('/products/{product}/edit', 'edit');
+
+## hacemos la funcion
+     public function edit(init $product_id){
+        $product = Product::findOrFail($product_id);
+        return view('admin.products.edit');
+    }
+## creamos la vista para editar productos
+    views/admin/products/edit.blade.php
+
+## editamos  
+@extends('layouts.admin')
+
+@section('content')
+<div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+            <h2>Editar Productos
+                <a href="{{url('admin/products')}}" class="btn btn-primary btn-sm float-end">Regresar</a>
+            </h2>
+        </div>
+        <div class="card-body">
+            @if (session('message'))
+                <h5 class="alert alert-success">{{session('message')}}</h5>
+            @endif
+
+            @if ($errors->any())
+            <div class="alert alert-warning">
+                @foreach ($errors->all() as $error)
+                    <div>{{$error}}</div>
+                @endforeach
+            </div>
+
+            @endif
+            <form action="{{url('admin/products/'.$product->id)}}" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+                <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">
+                            Home
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="seotag-tab" data-bs-toggle="pill" data-bs-target="#seotag" type="button" role="tab" aria-controls="seotag" aria-selected="false">
+                            SEO TAGS
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="details-tab" data-bs-toggle="pill" data-bs-target="#details" type="button" role="tab" aria-controls="details" aria-selected="false">
+                            Detalles
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="image-tab" data-bs-toggle="pill" data-bs-target="#images" type="button" role="tab" aria-controls="images" aria-selected="false">
+                            Imagenes
+                        </button>
+                    </li>
+                  </ul>
+                  <div class="tab-content" id="pills-tabContent">
+                    {{-- tabs inicio --}}
+                    <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+                        <div class="mb-3">
+                            <label>Category</label>
+                            <select name="category_id" class="form-control">
+                                @foreach ($categories as $category)
+                                    <option value="{{$category->id}}" {{$category->id == $product->category_id ? 'selected':''}}>
+                                        {{$category->name}}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Product Name</label>
+                            <input type="text" name="name" value="{{$product->name}}" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label>Product Slug</label>
+                            <input type="text" name="slug" value="{{$product->slug}}" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label>Seleccionar Marca</label>
+                            <select name="brand" class="form-control">
+                                @foreach ($brands as $brand)
+                                    <option value="{{$brand->name}}" {{$brand->name == $product->brand ? 'selected':''}}>
+                                        {{$brand->name}}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Pequeña Descripcion</label>
+                            <textarea name="small_description" class="form-control" rows="4">{{$product->small_description}}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label>Descripcion</label>
+                            <textarea name="description" class="form-control" rows="4">{{$product->description}}</textarea>
+                        </div>
+                    </div>
+                    {{-- tabs SEO --}}
+                    <div class="tab-pane fade" id="seotag" role="tabpanel" aria-labelledby="seotag-tab">
+                        <div class="mb-3">
+                            <label>Meta Title</label>
+                            <input type="text" name="meta_title" value="{{$product->meta_title}}" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label>Meta Descripcion</label>
+                            <textarea name="meta_description" class="form-control" rows="4">{{$product->meta_description}}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label>Meta Keyword</label>
+                            <textarea name="meta_keyword" class="form-control" rows="4">{{$product->meta_keyword}}</textarea>
+                        </div>
+                    </div>
+                    {{-- tabs detalles --}}
+                    <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label>Precio Original</label>
+                                    <input type="text" name="original_price" value="{{$product->original_price}}" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label>Precio de venta</label>
+                                    <input type="text" name="selling_price" value="{{$product->selling_price}}" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label>Cantidad</label>
+                                    <input type="number" name="quantity" value="{{$product->quantity}}" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label>Tendencia</label>
+                                    <input type="checkbox" name="trending" {{$product->trending == '1' ? 'checked':''}}  style="width: 50px; height: 50px;">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label>Estatus</label>
+                                    <input type="checkbox" name="status" {{$product->status == '1' ? 'checked':''}} style="width: 50px; height: 50px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- tabs imagenes --}}
+                    <div class="tab-pane fade" id="images" role="tabpanel" aria-labelledby="image-tab">
+                        <div class="mb-3">
+                            <label>Subir Imagenes de Productos</label>
+                            <input type="file" name="image[]" multiple class="form-control">
+                        </div>
+                        <div>
+                            @if ($product->productImages)
+                            <div class="row">
+                                @foreach ($product->productImages as $image)
+                                    <div class="col-md-2 text-center">
+                                        <img src="{{asset($image->image)}}" style="width: 80px;height:80px;" class="me-4 border-3" alt="img" />
+                                        <a href="{{url('admin/product-image/'.$image->id.'/delete')}}" class="d-block">Remove</a>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            @else
+                            <h5>No hay imagen registrada</h5>
+                            @endif
+
+                        </div>
+                    </div>
+                  </div>
+                  <div>
+                    <button type="submit" class="btn btn-primary">Actualizar</button>
+                  </div>
+
+            </form>
+
+        </div>
+      </div>
+
+    </div>
+</div>
+@endsection
+
+## colocamos los modelos de categoria y marcas
+  public function edit(int $product_id){
+        $categories = Category::all();
+        $brands = Brand::all();
+        $product = Product::findOrFail($product_id);
+        return view('admin.products.edit', compact('categories', 'brands', 'product'));
+    }
+
+## creamos la ruta para editar los cambios
+    Route::put('/products/{product}', 'update');
+
+## creamos la funcion update
+    public function update(ProductFormRequest $request, int $product_id){
+        $validatedData = $request->validated();
+        $product = Category::findOrFail($validatedData['category_id'])->products()->where('id', $product_id)->first();
+        if($product){
+            $product->update([
+                'category_id' => $validatedData['category_id'],
+                'name' => $validatedData['name'],
+                'slug' => Str::slug($validatedData['slug']),
+                'brand' => $validatedData['brand'],
+                'small_description' => $validatedData['small_description'],
+                'description' => $validatedData['description'],
+                'original_price' => $validatedData['original_price'],
+                'selling_price' => $validatedData['selling_price'],
+                'quantity' => $validatedData['quantity'],
+                'trending' => $request->trending == true ? '1': '0',
+                'status' => $request->status == true ? '1': '0',
+                'meta_title' => $validatedData['meta_title'],
+                'meta_keyword' => $validatedData['meta_keyword'],
+                'meta_description' => $validatedData['meta_description'],
+            ]);
+            if($request->hasFile('image')){
+                $uploadPath = 'uploads/products/';
+                $i = 0;
+                foreach($request->file('image') as $imageFile){
+                    $extention = $imageFile->getClientOriginalExtension();
+                    $filename = time().$i++.'.'.$extention;
+                    $imageFile->move($uploadPath,$filename);
+                    $finalImagePathName = $uploadPath.$filename;
+                    $product->productImages()->create([
+                        'product_id' => $product->id,
+                        'image' => $finalImagePathName,
+                    ]);
+                }
+            }
+            return redirect('/admin/products')->with('message', 'Producto Actualizado Correctamente');
+        }
+        else
+        {
+            return redirect('admin/products')->with('message', 'No hay producto encontrado con ese ID');
+        }
+
+    }
+
+## creamos la ruta para borrar las imagenes individualmente
+    Route::get('product-image/{product_image_id}/delete', 'destroyImage');
+
+## creamos la funcion para destruir la imagen
+     public function destroyImage(int $product_image_id){
+        $productImage = ProductImage::findOrFail($product_image_id);
+        if(File::exists($productImage->image)){
+            File::delete($productImage->image);
+        }
+        $productImage->delete();
+        return redirect()->back()->with('message','Imagen del producto Borrada');
+    }
+
+## hacemos el boton para eliminar el producto completamente
+<a href="{{url('admin/products/'.$product->id.'/delete')}}" onclick="return confirm('Estas Seguro que deseas Eliminar?')" class="btn btn-sm btn-danger">Borrar</a>
+
+## creamos la ruta para eliminar el producto
+    Route::get('/products/{product_id}/delete', 'destroy');
+
+## creamos la funcion destroy 
+     public function destroy(int $product_id){
+        $product = Product::findOrFail($product_id);
+        if($product->productImages()){
+            foreach($product->productImages() as $image){
+                if(File::exists($image->image)){
+                    File::delete($image->image);
+                }
+            }
+        }
+        $product->delete();
+        return redirect()->back()->with('message', 'Producto con sus Imagenes Borrada');
+    }
+
+## guardamos los datos
+* git add -A
+* git commit -m "video 11"
+* git branch -M main
+* git push -u origin main
