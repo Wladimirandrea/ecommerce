@@ -1560,7 +1560,7 @@ php artisan make:request ProductFormRequest
 * git branch -M main
 * git push -u origin main
 
-## editamos actualizamos eliminamos los productos (11 video)
+# editamos actualizamos eliminamos los productos (11 video)
 
 ## creamos la tabla para listar los productos
     <tbody>
@@ -1888,5 +1888,208 @@ php artisan make:request ProductFormRequest
 ## guardamos los datos
 * git add -A
 * git commit -m "video 11"
+* git branch -M main
+* git push -u origin main
+
+# creamos crud de colores (12 video)
+
+## hacemos el link de sidebar para colores
+    <li class="nav-item">
+        <a class="nav-link" href="{{url('/admin/colors')}}">
+          <i class="mdi mdi-chart-pie menu-icon"></i>
+          <span class="menu-title">Colores</span>
+        </a>
+    </li>
+## creamos la tabla para colores
+    php artisan make:migration create_colors_table
+
+## creamos los campos para la tabla
+    Schema::create('colors', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('code');
+            $table->tinyInteger('status')->default('0');
+            $table->timestamps();
+        });
+## migramos las tablas
+    php artisan migrate
+
+## creamos el controlador para colors
+    php artisan make:controller Admin/ColorController
+
+## hacemos la funcion para listar los colores
+     public function index(){
+        $colors = Color::all();
+        return view('admin.colors.index', compact('colors'));
+    }
+
+## creamos las rutas para colores
+     Route::controller(App\Http\Controllers\Admin\ColorController::class)->group(function () {
+        Route::get('/colors', 'index');
+        Route::get('/colors/create', 'create');
+        Route::post('/colors/create', 'store');
+        Route::get('/colors/{color}/edit', 'edit');
+        Route::put('/colors/{color_id}', 'update');
+        Route::get('/colors/{color_id}/delete', 'destroy');
+
+    });
+
+## creamos las vista para colores index create edit 
+## copiamos el index de productos para pegarlo en la vista index 
+
+@extends('layouts.admin')
+
+@section('content')
+<div class="row">
+    <div class="col-md-12">
+        @if (session('message'))
+            <div class="alert alert-success">{{session('message')}}</div>
+        @endif
+      <div class="card">
+        <div class="card-header">
+            <h2>Lista de Colores
+                <a href="{{url('admin/colors/create')}}" class="btn btn-primary btn-sm float-end">Agregar Colores</a>
+            </h2>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-striped text-center">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Color</th>
+                        <th>Codigo Color</th>
+                        <th>Estatus</th>
+                        <th>Accion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($colors as $item)
+                    <tr>
+                        <td>{{$item->id}}</td>
+                        <td>{{$item->name}}</td>
+                        <td>{{$item->code}}</td>
+                        <td>{{$item->status ? 'Oculto':'Visible'}}</td>
+                        <td>
+                            <a href="{{url('admin/colors/'.$item->id.'/edit')}}" class="btn btn-primary btn-sm">Editar</a>
+                            <a href="{{url('admin/colors/'.$item->id.'/delete')}}" onclick="return confirm('Estas Seguro que deseas Borrar este Color?')" class="btn btn-danger btn-sm">Borrar</a>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+      </div>
+
+    </div>
+</div>
+@endsection
+
+## creamos el metodo crear 
+public function create(){
+        return view('admin.colors.create');
+    }
+
+## hacemos el formulario para create
+    <form action="{{ url('admin/colors/create')}}" method="POST">
+                @csrf
+                <div class="mb-3">
+                    <label>Nombre</label> <br/>
+                    <input type="text" name="name" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label>Codigo Color</label> <br/>
+                    <input type="text" name="code" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label>Status</label> <br/>
+                    <input type="checkbox" name="status" /> Marcado=oculto, desmarcado= visible
+                </div>
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+
+            </form>
+
+## creamos el modelo
+    php artisan make:model
+
+## protegemos la tablas en el modelo
+     protected $table = 'colors';
+    protected $fillable = [
+        'name',
+        'code',
+        'status'
+    ];
+
+## hacemos las funcion store para guardar
+    public function store(ColorFormRequest $request){
+        $validatedData = $request->validated();
+        $validatedData['status'] = $request->status == true ? '1':'0';
+        Color::create($validatedData);
+        return redirect('admin/colors')->with('message', 'Color Guardado Correctamente');
+
+    }
+
+## creamos el request para las rules
+    php artisan make:request ColorFormRequest
+
+ public function rules()
+    {
+        return [
+            'name' => ['required','string'],
+            'code' => ['required','string'],
+            'status' => ['nullable']
+
+
+
+        ];
+
+    }
+
+## creamos la funcion para editar
+public function edit(Color $color){
+        return view('admin.colors.edit', compact('color'));
+    }
+
+## creamos el formulario para editar
+    <form action="{{ url('admin/colors/'.$color->id)}}" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="mb-3">
+                    <label>Nombre</label> <br/>
+                    <input type="text" name="name" value="{{$color->name}}" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label>Codigo Color</label> <br/>
+                    <input type="text" name="code" value="{{$color->code}}" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label>Status</label> <br/>
+                    <input type="checkbox" name="status" {{$color->status ? 'checked':''}} style="width: 50px; height: 50px;">
+                </div>
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-primary">Actualizar</button>
+                </div>
+
+            </form>
+
+## creamos la funcion para actualizar
+     public function update(ColorFormRequest $request, $color_id){
+        $validatedData = $request->validated();
+        $validatedData['status'] = $request->status == true ? '1':'0';
+        Color::find($color_id)->update($validatedData);
+        return redirect('admin/colors')->with('message', 'Color Actualizado Correctamente');
+    }
+
+## creamos la funcion para borrar
+     public function destroy(int $color_id){
+        $color = color::findOrFail($color_id);
+        $color->delete();
+        return redirect()->back()->with('message', 'Color borrado Correctamente');
+    }
+
+## guardamos los datos
+* git add -A
+* git commit -m "video 12"
 * git branch -M main
 * git push -u origin main

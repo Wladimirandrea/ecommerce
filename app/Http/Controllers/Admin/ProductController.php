@@ -57,6 +57,7 @@ class ProductController extends Controller
                 ]);
             }
         }
+
         return redirect('/admin/products')->with('message', 'Producto añadido Correctamente');
         /* return $product; */
     }
